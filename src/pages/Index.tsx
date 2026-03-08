@@ -133,7 +133,10 @@ const Index = () => {
         )}
 
         {/* Recent downloads */}
-        <RecentDownloads />
+        {/* Drop Zone */}
+        {!meta && (
+          <DropZone onUrlDetected={handleSubmit} isLoading={isLoading} />
+        )}
       </main>
 
       {/* Footer */}
