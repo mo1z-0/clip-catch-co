@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miz Downloader — Download Any Video</title>
+  <meta name="description" content="Download videos from YouTube, Facebook, Instagram, and X instantly." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1a;
+      --card: #111827;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #14b8a6;
+      --primary-glow: #06b6d4;
+      --primary-fg: #fff;
+      --accent: #8b5cf6;
+      --destructive: #ef4444;
+      --radius: 16px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background glows */
+    .glow-top {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 600px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      opacity: 0.12; filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+    .glow-bottom {
+      position: fixed; bottom: -200px; right: -100px;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      opacity: 0.08; filter: blur(100px); pointer-events: none; z-index: 0;
+    }
+
+    /* Layout */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* Header */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; max-width: 720px; margin: 0 auto;
+      position: relative; z-index: 10;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--primary-fg);
+    }
+    .logo span { font-weight: 700; letter-spacing: -0.5px; }
+
+    .theme-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; font-size: 16px;
+      transition: color 0.2s;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    /* Hero */
+    .hero { text-align: center; padding: 48px 0 40px; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.15; margin-bottom: 16px; }
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p { color: var(--muted); font-size: 1.05rem; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+    /* URL Input */
+    .input-wrap { position: relative; max-width: 640px; margin: 0 auto; }
+    .input-glow {
+      position: absolute; inset: -2px; border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      opacity: 0.25; filter: blur(4px); transition: opacity 0.3s;
+    }
+    .input-wrap:hover .input-glow { opacity: 0.45; }
+    .input-inner {
+      position: relative; display: flex; align-items: center;
+      background: var(--card); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .input-icon { padding-left: 20px; color: var(--muted); font-size: 18px; }
+    .url-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      padding: 20px 16px; color: var(--text); font-family: var(--mono);
+      font-size: 0.95rem;
+    }
+    .url-input::placeholder { color: var(--muted); }
+    .fetch-btn {
+      margin: 8px; padding: 12px 24px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      color: var(--primary-fg); border: none; font-weight: 600;
+      font-size: 0.875rem; cursor: pointer; display: flex;
+      align-items: center; gap: 8px; transition: opacity 0.2s; white-space: nowrap;
+    }
+    .fetch-btn:hover { opacity: 0.9; }
+    .fetch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Platform dots */
+    .platforms {
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; margin-top: 16px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+    }
+    .platforms span { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-red { background: #ef4444; }
+    .dot-blue { background: #3b82f6; }
+    .dot-pink { background: #ec4899; }
+    .dot-cyan { background: #06b6d4; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 64px; }
+    .feature-card {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 24px; border-radius: var(--radius);
+      background: var(--card); border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(20, 184, 166, 0.3); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px; font-size: 18px; color: var(--primary-fg);
+    }
+    .feature-card h3 { font-size: 0.875rem; font-weight: 600; margin-bottom: 4px; }
+    .feature-card p { font-size: 0.75rem; color: var(--muted); }
+
+    /* Drop Zone */
+    .dropzone {
+      max-width: 640px; margin: 40px auto 0; padding: 32px;
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      text-align: center; background: rgba(17, 24, 39, 0.5);
+      transition: all 0.3s;
+    }
+    .dropzone.dragging {
+      border-color: var(--primary); background: rgba(20, 184, 166, 0.05);
+      transform: scale(1.02);
+    }
+    .dropzone-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: rgba(30, 41, 59, 1); color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px; font-size: 22px; transition: all 0.2s;
+    }
+    .dropzone.dragging .dropzone-icon { background: rgba(20, 184, 166, 0.2); color: var(--primary); }
+    .dropzone h4 { font-size: 0.875rem; font-weight: 600; }
+    .dropzone p { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+
+    /* Video Preview */
+    .preview { display: none; margin-top: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
+    .preview.visible { display: block; }
+    .preview-card {
+      border-radius: var(--radius); overflow: hidden;
+      background: var(--card); border: 1px solid var(--border);
+    }
+    .preview-thumb {
+      position: relative; width: 100%; aspect-ratio: 16/9;
+      background: #1a1a2e; overflow: hidden;
+    }
+    .preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-badge {
+      position: absolute; top: 12px; left: 12px;
+      background: var(--primary); color: var(--primary-fg);
+      padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;
+    }
+    .preview-duration {
+      position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.75); color: #fff;
+      padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-family: var(--mono);
+    }
+    .preview-info { padding: 16px 20px; }
+    .preview-info h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
+    .preview-meta { display: flex; gap: 16px; font-size: 0.75rem; color: var(--muted); font-family: var(--mono); }
+
+    /* Formats */
+    .formats { display: none; margin-top: 24px; max-width: 640px; margin-left: auto; margin-right: auto; }
+    .formats.visible { display: block; }
+    .format-section { margin-bottom: 16px; }
+    .format-label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 600; margin-bottom: 12px; }
+    .format-label .icon { color: var(--primary); }
+    .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .format-btn {
+      position: relative; padding: 12px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); text-align: left; cursor: pointer; transition: all 0.2s;
+    }
+    .format-btn:hover { border-color: rgba(20, 184, 166, 0.4); }
+    .format-btn.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.1); }
+    .format-btn.audio.selected { border-color: var(--accent); background: rgba(139, 92, 246, 0.1); }
+    .format-btn .check {
+      position: absolute; top: 8px; right: 8px; font-size: 12px;
+      color: var(--primary); display: none;
+    }
+    .format-btn.selected .check { display: block; }
+    .format-btn.audio.selected .check { color: var(--accent); }
+    .format-btn strong { display: block; font-size: 0.875rem; }
+    .format-btn .quality { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+    .format-btn .size { font-size: 0.7rem; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+
+    /* Download button */
+    .download-btn {
+      width: 100%; padding: 16px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+      color: var(--primary-fg); border: none; font-weight: 600;
+      font-size: 0.875rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 8px;
+      margin-top: 24px; transition: all 0.3s;
+    }
+    .download-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .download-btn:not(:disabled):hover { opacity: 0.9; }
+    .download-btn.done { background: #22c55e; }
+
+    /* Error */
+    .error { text-align: center; color: var(--destructive); font-size: 0.875rem; margin-top: 16px; display: none; }
+    .error.visible { display: block; }
+
+    /* Footer */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border); padding: 24px;
+      text-align: center; font-size: 0.75rem; color: var(--muted);
+      font-family: var(--mono); margin-top: 80px;
+    }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+
+    /* Fade in */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp 0.5s ease forwards; }
+  </style>
+</head>
+<body>
+  <div class="glow-top"></div>
+  <div class="glow-bottom"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⬇</div>
+      <span>Miz Downloader</span>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">☀</button>
+  </header>
+
+  <!-- Main -->
+  <main class="container">
+    <!-- Hero -->
+    <div class="hero fade-up">
+      <h1>Download Any Video, <span class="gradient">Instantly</span></h1>
+      <p>Paste a link from YouTube, Facebook, Instagram, or X — choose your quality and download.</p>
+    </div>
+
+    <!-- URL Input -->
+    <div class="input-wrap fade-up" style="animation-delay: 0.15s">
+      <div class="input-glow"></div>
+      <div class="input-inner">
+        <div class="input-icon">🔗</div>
+        <input type="url" class="url-input" id="urlInput" placeholder="Paste video URL here..." />
+        <button class="fetch-btn" id="fetchBtn" disabled>
+          <span id="fetchText">Fetch</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+    <div class="platforms fade-up" style="animation-delay: 0.2s">
+      <span><span class="dot dot-red"></span> YouTube</span>
+      <span><span class="dot dot-blue"></span> Facebook</span>
+      <span><span class="dot dot-pink"></span> Instagram</span>
+      <span><span class="dot dot-cyan"></span> Twitter/X</span>
+    </div>
+
+    <!-- Error -->
+    <div class="error" id="errorMsg"></div>
+
+    <!-- Video Preview -->
+    <div class="preview" id="preview">
+      <div class="preview-card">
+        <div class="preview-thumb">
+          <img id="thumbImg" src="" alt="Video thumbnail" />
+          <span class="preview-badge" id="platformBadge">YouTube</span>
+          <span class="preview-duration" id="durationBadge">12:34</span>
+        </div>
+        <div class="preview-info">
+          <h2 id="videoTitle">Video Title</h2>
+          <div class="preview-meta">
+            <span id="metaViews">👁 1.2M views</span>
+            <span id="metaDuration">⏱ 12:34</span>
+            <span id="metaDate">📅 Mar 5, 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Format Selector -->
+    <div class="formats" id="formats">
+      <div class="format-section">
+        <div class="format-label"><span class="icon">🎬</span> Video Formats</div>
+        <div class="format-grid" id="videoFormats"></div>
+      </div>
+      <div class="format-section">
+        <div class="format-label"><span class="icon">🎵</span> Audio Only</div>
+        <div class="format-grid" id="audioFormats"></div>
+      </div>
+      <button class="download-btn" id="downloadBtn" disabled>⬇ Download</button>
+    </div>
+
+    <!-- Features -->
+    <div class="features fade-up" id="featuresSection" style="animation-delay: 0.3s">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Lightning Fast</h3>
+        <p>Process videos in seconds</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡</div>
+        <h3>Safe & Private</h3>
+        <p>No data stored on servers</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>Multi-Platform</h3>
+        <p>YouTube, FB, IG & more</p>
+      </div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon" id="dropIcon">📄</div>
+      <h4 id="dropText">Drag & drop a URL or text file</h4>
+      <p>Drop a .txt file containing a video link, or drag a URL directly</p>
+    </div>
+  </main>
+
+  <footer>Miz Downloader © 2026 — For personal use only</footer>
+
+  <script>
+    // ===== CONFIG =====
+    const FORMATS = [
+      { id: '1080p', label: '1080p', quality: 'Full HD', type: 'video', size: '~250 MB' },
+      { id: '720p', label: '720p', quality: 'HD', type: 'video', size: '~120 MB' },
+      { id: '480p', label: '480p', quality: 'SD', type: 'video', size: '~65 MB' },
+      { id: '360p', label: '360p', quality: 'Low', type: 'video', size: '~35 MB' },
+      { id: 'mp3', label: 'MP3', quality: 'Audio 320kbps', type: 'audio', size: '~8 MB' },
+      { id: 'm4a', label: 'M4A', quality: 'Audio AAC', type: 'audio', size: '~6 MB' },
+    ];
+
+    // ===== STATE =====
+    let selectedFormat = null;
+    let isLoading = false;
+    let videoLoaded = false;
+
+    // ===== ELEMENTS =====
+    const $ = (s) => document.querySelector(s);
+    const urlInput = $('#urlInput');
+    const fetchBtn = $('#fetchBtn');
+    const fetchText = $('#fetchText');
+    const errorMsg = $('#errorMsg');
+    const preview = $('#preview');
+    const formats = $('#formats');
+    const features = $('#featuresSection');
+    const dropzone = $('#dropzone');
+    const downloadBtn = $('#downloadBtn');
+    const themeBtn = $('#themeBtn');
+
+    // ===== PLATFORM DETECTION =====
+    function detectPlatform(url) {
+      if (url.includes('youtube') || url.includes('youtu.be')) return 'YouTube';
+      if (url.includes('facebook') || url.includes('fb.')) return 'Facebook';
+      if (url.includes('instagram')) return 'Instagram';
+      if (url.includes('twitter') || url.includes('x.com')) return 'Twitter/X';
+      return 'YouTube';
+    }
+
+    // ===== RENDER FORMATS =====
+    function renderFormats() {
+      const videoGrid = $('#videoFormats');
+      const audioGrid = $('#audioFormats');
+      videoGrid.innerHTML = '';
+      audioGrid.innerHTML = '';
+
+      FORMATS.forEach(f => {
+        const btn = document.createElement('button');
+        btn.className = `format-btn ${f.type === 'audio' ? 'audio' : ''}`;
+        btn.innerHTML = `<span class="check">✓</span><strong>${f.label}</strong><div class="quality">${f.quality}</div><div class="size">${f.size}</div>`;
+        btn.onclick = () => selectFormat(f.id, btn);
+        (f.type === 'video' ? videoGrid : audioGrid).appendChild(btn);
+      });
+    }
+
+    function selectFormat(id, btn) {
+      selectedFormat = id;
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const f = FORMATS.find(x => x.id === id);
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = `⬇ Download ${f.label}`;
+      downloadBtn.className = 'download-btn';
+    }
+
+    // ===== FETCH VIDEO =====
+    function handleFetch(url) {
+      if (isLoading || !url.trim()) return;
+      isLoading = true;
+      errorMsg.classList.remove('visible');
+      fetchBtn.disabled = true;
+      fetchText.innerHTML = '<span class="spinner"></span>';
+
+      // ========================================
+      // 🔧 REPLACE THIS WITH YOUR REAL API CALL
+      // ========================================
+      // Example with a real backend:
+      // fetch('http://localhost:3001/api/info?url=' + encodeURIComponent(url))
+      //   .then(r => r.json())
+      //   .then(data => showVideo(data))
+      //   .catch(err => showError(err.message));
+
+      // Mock simulation (remove when using real backend):
+      setTimeout(() => {
+        const platform = detectPlatform(url);
+        showVideo({
+          title: 'Exploring the Neon Cities of Tomorrow — A Cinematic Journey',
+          thumbnail: 'https://images.unsplash.com/photo-1545486332-9e0999c535b2?w=800&q=80',
+          duration: '12:34',
+          views: '1.2M views',
+          uploadDate: 'Mar 5, 2026',
+          platform: platform
+        });
+      }, 1800);
+    }
+
+    function showVideo(meta) {
+      isLoading = false;
+      videoLoaded = true;
+      fetchBtn.disabled = false;
+      fetchText.textContent = 'Fetch';
+
+      $('#thumbImg').src = meta.thumbnail;
+      $('#platformBadge').textContent = meta.platform;
+      $('#durationBadge').textContent = meta.duration;
+      $('#videoTitle').textContent = meta.title;
+      $('#metaViews').textContent = '👁 ' + meta.views;
+      $('#metaDuration').textContent = '⏱ ' + meta.duration;
+      $('#metaDate').textContent = '📅 ' + meta.uploadDate;
+
+      preview.classList.add('visible');
+      formats.classList.add('visible');
+      features.style.display = 'none';
+      dropzone.style.display = 'none';
+
+      renderFormats();
+    }
+
+    function showError(msg) {
+      isLoading = false;
+      fetchBtn.disabled = false;
+      fetchText.textContent = 'Fetch';
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+
+    // ===== DOWNLOAD =====
+    downloadBtn.addEventListener('click', () => {
+      if (!selectedFormat) return;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span class="spinner"></span> Processing...';
+
+      // ========================================
+      // 🔧 REPLACE THIS WITH YOUR REAL DOWNLOAD
+      // ========================================
+      // Example: window.location.href = 'http://localhost:3001/api/download?url=...&format=' + selectedFormat;
+
+      // Mock simulation:
+      setTimeout(() => {
+        downloadBtn.className = 'download-btn done';
+        downloadBtn.textContent = '✓ Download Complete!';
+        setTimeout(() => {
+          downloadBtn.className = 'download-btn';
+          downloadBtn.disabled = false;
+          const f = FORMATS.find(x => x.id === selectedFormat);
+          downloadBtn.textContent = `⬇ Download ${f ? f.label : ''}`;
+        }, 3000);
+      }, 2500);
+    });
+
+    // ===== INPUT EVENTS =====
+    urlInput.addEventListener('input', () => {
+      fetchBtn.disabled = !urlInput.value.trim();
+    });
+
+    urlInput.addEventListener('paste', (e) => {
+      const text = e.clipboardData.getData('text').trim();
+      if (/^https?:\/\//i.test(text)) {
+        e.preventDefault();
+        urlInput.value = text;
+        fetchBtn.disabled = false;
+        handleFetch(text);
+      }
+    });
+
+    fetchBtn.addEventListener('click', () => handleFetch(urlInput.value.trim()));
+
+    // ===== DRAG & DROP =====
+    const URL_REGEX = /https?:\/\/[^\s<>"']+/i;
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragging');
+      $('#dropText').textContent = 'Drop it here!';
+      $('#dropIcon').textContent = '⬆';
+    });
+
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragging');
+      $('#dropText').textContent = 'Drag & drop a URL or text file';
+      $('#dropIcon').textContent = '📄';
+    });
+
+    dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragging');
+      $('#dropText').textContent = 'Drag & drop a URL or text file';
+      $('#dropIcon').textContent = '📄';
+
+      const text = e.dataTransfer.getData('text/plain');
+      if (text) {
+        const match = text.match(URL_REGEX);
+        if (match) { urlInput.value = match[0]; handleFetch(match[0]); return; }
+      }
+
+      const files = Array.from(e.dataTransfer.files);
+      const txtFile = files.find(f => f.type === 'text/plain' || f.name.endsWith('.txt'));
+      if (txtFile) {
+        const content = await txtFile.text();
+        const match = content.match(URL_REGEX);
+        if (match) { urlInput.value = match[0]; handleFetch(match[0]); }
+      }
+    });
+
+    // ===== THEME TOGGLE =====
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀' : '🌙';
+    });
+  </script>
+</body>
+</html>
