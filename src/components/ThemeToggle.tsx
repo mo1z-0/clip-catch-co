@@ -13,11 +13,15 @@ const ThemeToggle = () => {
     document.documentElement.classList.add("dark");
   }, []);
 
-  return;
-
-
-
-
+  return (
+    <button
+      onClick={() => setDark(!dark)}
+      className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+      aria-label="Toggle theme"
+    >
+      {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </button>
+  );
 
 
 
