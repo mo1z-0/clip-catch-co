@@ -5,6 +5,7 @@ import UrlInput from "@/components/UrlInput";
 import VideoPreview, { VideoMeta } from "@/components/VideoPreview";
 import FormatSelector from "@/components/FormatSelector";
 import ThemeToggle from "@/components/ThemeToggle";
+import DropZone from "@/components/DropZone";
 import heroThumb from "@/assets/hero-thumbnail.jpg";
 
 const MOCK_META: VideoMeta = {
