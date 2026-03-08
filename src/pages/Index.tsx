@@ -4,7 +4,6 @@ import { Download, Zap, Shield, Globe } from "lucide-react";
 import UrlInput from "@/components/UrlInput";
 import VideoPreview, { VideoMeta } from "@/components/VideoPreview";
 import FormatSelector from "@/components/FormatSelector";
-import RecentDownloads from "@/components/RecentDownloads";
 import ThemeToggle from "@/components/ThemeToggle";
 import heroThumb from "@/assets/hero-thumbnail.jpg";
 
