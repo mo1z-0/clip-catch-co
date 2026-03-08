@@ -4,8 +4,8 @@ import { Download, Zap, Shield, Globe } from "lucide-react";
 import UrlInput from "@/components/UrlInput";
 import VideoPreview, { VideoMeta } from "@/components/VideoPreview";
 import FormatSelector from "@/components/FormatSelector";
-import RecentDownloads from "@/components/RecentDownloads";
 import ThemeToggle from "@/components/ThemeToggle";
+import DropZone from "@/components/DropZone";
 import heroThumb from "@/assets/hero-thumbnail.jpg";
 
 const MOCK_META: VideoMeta = {
@@ -134,7 +134,10 @@ const Index = () => {
         )}
 
         {/* Recent downloads */}
-        <RecentDownloads />
+        {/* Drop Zone */}
+        {!meta && (
+          <DropZone onUrlDetected={handleSubmit} isLoading={isLoading} />
+        )}
       </main>
 
       {/* Footer */}
