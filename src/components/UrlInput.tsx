@@ -15,6 +15,15 @@ const UrlInput = ({ onSubmit, isLoading }: UrlInputProps) => {
     if (url.trim()) onSubmit(url.trim());
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text").trim();
+    if (pasted && /^https?:\/\//i.test(pasted)) {
+      e.preventDefault();
+      setUrl(pasted);
+      onSubmit(pasted);
+    }
+  };
+
   return (
     <motion.form
       onSubmit={handleSubmit}
