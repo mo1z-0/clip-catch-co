@@ -14,7 +14,7 @@ const MOCK_META: VideoMeta = {
   duration: "12:34",
   views: "1.2M views",
   uploadDate: "Mar 5, 2026",
-  platform: "YouTube",
+  platform: "YouTube"
 };
 
 const detectPlatform = (url: string): string => {
@@ -26,10 +26,10 @@ const detectPlatform = (url: string): string => {
 };
 
 const features = [
-  { icon: Zap, title: "Lightning Fast", desc: "Process videos in seconds" },
-  { icon: Shield, title: "Safe & Private", desc: "No data stored on servers" },
-  { icon: Globe, title: "Multi-Platform", desc: "YouTube, FB, IG & more" },
-];
+{ icon: Zap, title: "Lightning Fast", desc: "Process videos in seconds" },
+{ icon: Shield, title: "Safe & Private", desc: "No data stored on servers" },
+{ icon: Globe, title: "Multi-Platform", desc: "YouTube, FB, IG & more" }];
+
 
 const Index = () => {
   const [meta, setMeta] = useState<VideoMeta | null>(null);
@@ -66,7 +66,7 @@ const Index = () => {
           <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <Download className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground tracking-tight">VidGrab</span>
+          <span className="font-bold text-foreground tracking-tight">Miz Downloader </span>
         </div>
         <ThemeToggle />
       </header>
@@ -77,8 +77,8 @@ const Index = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
-        >
+          className="text-center mb-10">
+          
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-tight mb-4">
             Download Any Video,{" "}
             <span className="text-gradient">Instantly</span>
@@ -92,60 +92,60 @@ const Index = () => {
         <UrlInput onSubmit={handleSubmit} isLoading={isLoading} />
 
         {/* Error */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-4 text-center text-sm text-destructive font-medium"
-          >
+        {error &&
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 text-center text-sm text-destructive font-medium">
+          
             {error}
           </motion.div>
-        )}
+        }
 
         {/* Video Preview + Format Selector */}
-        {meta && (
-          <div className="mt-8 space-y-6">
+        {meta &&
+        <div className="mt-8 space-y-6">
             <VideoPreview meta={meta} />
             <FormatSelector />
           </div>
-        )}
+        }
 
         {/* Features */}
-        {!meta && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16"
-          >
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center text-center p-6 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors"
-              >
+        {!meta &&
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16">
+          
+            {features.map((f, i) =>
+          <div
+            key={i}
+            className="flex flex-col items-center text-center p-6 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors">
+            
                 <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center mb-3">
                   <f.icon className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div className="font-semibold text-foreground text-sm">{f.title}</div>
                 <div className="text-xs text-muted-foreground mt-1">{f.desc}</div>
               </div>
-            ))}
+          )}
           </motion.div>
-        )}
+        }
 
         {/* Recent downloads */}
         {/* Drop Zone */}
-        {!meta && (
-          <DropZone onUrlDetected={handleSubmit} isLoading={isLoading} />
-        )}
+        {!meta &&
+        <DropZone onUrlDetected={handleSubmit} isLoading={isLoading} />
+        }
       </main>
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
         VidGrab © 2026 — For personal use only
       </footer>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;
