@@ -42,7 +42,7 @@ const UrlInput = ({ onSubmit, isLoading }: UrlInputProps) => {
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste your video URL here..."
+            onPaste={handlePaste}
             className="flex-1 bg-transparent px-4 py-5 text-foreground placeholder:text-muted-foreground focus:outline-none text-base font-mono"
             disabled={isLoading}
           />
